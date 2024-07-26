@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'api_service.dart';
+import '../service/api_service.dart';
 
 class PeopleListScreen extends StatelessWidget {
   Future<List<Map<String, dynamic>>> _fetchPeople() async {
