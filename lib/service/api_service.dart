@@ -2,10 +2,10 @@ import 'package:dio/dio.dart';
 
 class ApiService {
   final Dio _dio = Dio(BaseOptions(
-    baseUrl: 'https://parseapi.back4app.com/classes/',
+    baseUrl: 'https://parseapi.back4app.com/classes/ListadeContatos',
     headers: {
-      'X-Parse-Application-Id': 'YOUR_APPLICATION_ID',
-      'X-Parse-Client-Key': 'YOUR_CLIENT_KEY',
+      'X-Parse-Application-Id': 'EEc5M90U1c1ll4j4ghCvczxdkMeu8GTSeb4wJulf',
+      'X-Parse-REST-API-Key': 'H4fVRNm250sKQOUD4479fpJKkI7RzWR1XZkzvFDr',
       'Content-Type': 'application/json',
     },
   ));
@@ -24,6 +24,23 @@ class ApiService {
       }
     } catch (e) {
       throw Exception('Failed to create person: $e');
+    }
+  }
+
+  Future<void> updatePerson(String objectId, String name, String profilePicPath) async {
+    try {
+      final response = await _dio.put(
+        'Person/$objectId',
+        data: {
+          'name': name,
+          'profilePicPath': profilePicPath,
+        },
+      );
+      if (response.statusCode != 200) {
+        throw Exception('Failed to update person: ${response.statusMessage}');
+      }
+    } catch (e) {
+      throw Exception('Failed to update person: $e');
     }
   }
 

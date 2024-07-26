@@ -5,6 +5,10 @@ import 'dart:io';
 import '../service/api_service.dart';
 
 class RegisterScreen extends StatefulWidget {
+  final Map<String, dynamic>? contact;
+
+  RegisterScreen({this.contact});
+
   @override
   _RegisterScreenState createState() => _RegisterScreenState();
 }
@@ -12,6 +16,17 @@ class RegisterScreen extends StatefulWidget {
 class _RegisterScreenState extends State<RegisterScreen> {
   final _nameController = TextEditingController();
   File? _imageFile;
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.contact != null) {
+      _nameController.text = widget.contact!['name'];
+      _imageFile = widget.contact!['profilePicPath'] != null
+          ? File(widget.contact!['profilePicPath'])
+          : null;
+    }
+  }
 
   Future<void> _pickAndCropImage() async {
     final picker = ImagePicker();
@@ -26,7 +41,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
           CropAspectRatioPreset.ratio4x3,
           CropAspectRatioPreset.ratio16x9
         ],
-        androidUiSettings: AndroidUiSettings(
+        androidUiSettings: const AndroidUiSettings(
           toolbarTitle: 'Crop Image',
           toolbarColor: Colors.deepOrange,
           toolbarWidgetColor: Colors.white,
@@ -40,43 +55,56 @@ class _RegisterScreenState extends State<RegisterScreen> {
     }
   }
 
-  Future<void> _uploadImage() async {
-    if (_imageFile == null) return;
-
+  Future<void> _saveOrUpdatePerson() async {
     final apiService = ApiService();
     try {
-      await apiService.createPerson(_nameController.text, _imageFile!.path);
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Person registered successfully')));
+      if (widget.contact == null) {
+        await apiService.createPerson(
+          _nameController.text,
+          _imageFile?.path ?? '',
+        );
+      } else {
+        await apiService.updatePerson(
+          widget.contact!['objectId'], // assuming you have an ID
+          _nameController.text,
+          _imageFile?.path ?? '',
+        );
+      }
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Person ${widget.contact == null ? 'registered' : 'updated'} successfully')),
+      );
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error: $e')),
+      );
     }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('Register Person')),
+      appBar: AppBar(title: Text(widget.contact == null ? 'Register Person' : 'Edit Person')),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
           children: [
             TextField(
               controller: _nameController,
-              decoration: InputDecoration(labelText: 'Name'),
+              decoration: const InputDecoration(labelText: 'Name'),
             ),
-            SizedBox(height: 16),
+            const SizedBox(height: 16),
             _imageFile == null
-                ? Text('No image selected.')
+                ? const Text('No image selected.')
                 : Image.file(_imageFile!),
-            SizedBox(height: 16),
+            const SizedBox(height: 16),
             ElevatedButton(
               onPressed: _pickAndCropImage,
-              child: Text('Pick and Crop Image'),
+              child: const Text('Pick and Crop Image'),
             ),
-            SizedBox(height: 16),
+            const SizedBox(height: 16),
             ElevatedButton(
-              onPressed: _uploadImage,
-              child: Text('Register'),
+              onPressed: _saveOrUpdatePerson,
+              child: const Text('Save'),
             ),
           ],
         ),

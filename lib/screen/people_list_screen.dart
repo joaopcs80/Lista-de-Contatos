@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:listadecontatos/screen/register_screen.dart';
 import '../service/api_service.dart';
 
 class PeopleListScreen extends StatelessWidget {
@@ -36,10 +37,28 @@ class PeopleListScreen extends StatelessWidget {
                 leading: profilePicPath.isNotEmpty
                     ? Image.network(profilePicPath)
                     : Icon(Icons.person),
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => RegisterScreen(contact: person),
+                    ),
+                  );
+                },
               );
             },
           );
         },
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => RegisterScreen()),
+          );
+        },
+        child: Icon(Icons.add),
+        tooltip: 'Register Person',
       ),
     );
   }
