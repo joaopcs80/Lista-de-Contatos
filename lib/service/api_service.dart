@@ -10,12 +10,19 @@ class ApiService {
     },
   ));
 
-  Future<void> createPerson(String name, String profilePicPath) async {
+  Future<void> createPerson(
+    String name,
+    String phone,
+    String email,
+    String profilePicPath,
+  ) async {
     try {
       final response = await _dio.post(
         'Person',
         data: {
           'name': name,
+          'phone': phone,
+          'email': email,
           'profilePicPath': profilePicPath,
         },
       );
@@ -27,12 +34,20 @@ class ApiService {
     }
   }
 
-  Future<void> updatePerson(String objectId, String name, String profilePicPath) async {
+  Future<void> updatePerson(
+    String objectId,
+    String name,
+    String phone,
+    String email,
+    String profilePicPath,
+  ) async {
     try {
       final response = await _dio.put(
         'Person/$objectId',
         data: {
           'name': name,
+          'phone': phone,
+          'email': email,
           'profilePicPath': profilePicPath,
         },
       );

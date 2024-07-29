@@ -1,28 +1,121 @@
 import 'package:flutter/material.dart';
+import 'dart:io'; 
 import 'package:listadecontatos/screen/register_screen.dart';
 import '../service/api_service.dart';
 
-class PeopleListScreen extends StatelessWidget {
+class PeopleListScreen extends StatefulWidget {
+  @override
+  _PeopleListScreenState createState() => _PeopleListScreenState();
+}
+
+class _PeopleListScreenState extends State<PeopleListScreen> {
+  late Future<List<Map<String, dynamic>>> _peopleFuture;
+  String _sortOrder = 'name'; 
+
+  @override
+  void initState() {
+    super.initState();
+    _peopleFuture = _fetchPeople();
+  }
+
   Future<List<Map<String, dynamic>>> _fetchPeople() async {
     final apiService = ApiService();
-    return await apiService.fetchPeople();
+    try {
+      final people = await apiService.fetchPeople();
+      people.sort((a, b) {
+        if (_sortOrder == 'name') {
+          return (a['name'] ?? '').compareTo(b['name'] ?? '');
+        } else if (_sortOrder == 'phone') {
+          return (a['phone'] ?? '').compareTo(b['phone'] ?? '');
+        } else if (_sortOrder == 'email') {
+          return (a['email'] ?? '').compareTo(b['email'] ?? '');
+        }
+        return 0;
+      });
+      print('Dados recebidos: $people');
+      return people;
+    } catch (e) {
+      print('Erro ao buscar pessoas: $e');
+      throw e;
+    }
+  }
+
+  Future<void> _refreshPeople() async {
+    setState(() {
+      _peopleFuture = _fetchPeople();
+    });
+  }
+
+  void _showSortOptions() {
+    showModalBottomSheet(
+      context: context,
+      builder: (BuildContext context) {
+        return Wrap(
+          children: <Widget>[
+            ListTile(
+              leading: Icon(Icons.sort_by_alpha),
+              title: Text('Ordenar por Nome'),
+              onTap: () {
+                setState(() {
+                  _sortOrder = 'name';
+                  _refreshPeople();
+                });
+                Navigator.pop(context);
+              },
+            ),
+            ListTile(
+              leading: Icon(Icons.phone),
+              title: Text('Ordenar por Telefone'),
+              onTap: () {
+                setState(() {
+                  _sortOrder = 'phone';
+                  _refreshPeople();
+                });
+                Navigator.pop(context);
+              },
+            ),
+            ListTile(
+              leading: Icon(Icons.email),
+              title: Text('Ordenar por E-mail'),
+              onTap: () {
+                setState(() {
+                  _sortOrder = 'email';
+                  _refreshPeople();
+                });
+                Navigator.pop(context);
+              },
+            ),
+          ],
+        );
+      },
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('Lista de Contatos')),
+      appBar: AppBar(
+        title: Text('Lista de Contatos'),
+        actions: [
+          IconButton(
+            icon: Icon(Icons.sort),
+            onPressed: _showSortOptions,
+          ),
+        ],
+      ),
       body: FutureBuilder<List<Map<String, dynamic>>>(
-        future: _fetchPeople(),
+        future: _peopleFuture,
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return Center(child: CircularProgressIndicator());
           }
           if (snapshot.hasError) {
-            return Center(child: Text('Error: ${snapshot.error}'));
+            print('Erro no FutureBuilder: ${snapshot.error}');
+            return Center(child: Text('Erro: ${snapshot.error}'));
           }
           if (!snapshot.hasData || snapshot.data!.isEmpty) {
-            return Center(child: Text('Contato não encontrado.'));
+            print('Nenhum contato encontrado.');
+            return Center(child: Text('Nenhum contato encontrado.'));
           }
 
           final people = snapshot.data!;
@@ -30,20 +123,42 @@ class PeopleListScreen extends StatelessWidget {
             itemCount: people.length,
             itemBuilder: (context, index) {
               final person = people[index];
-              final name = person['name'] ?? 'No name';
+              final name = person['name'] ?? 'Sem nome';
               final profilePicPath = person['profilePicPath'] ?? '';
+              final phone = person['phone'] ?? 'Sem telefone';
+              final email = person['email'] ?? 'Sem e-mail';
+
+              Widget leadingWidget;
+              if (profilePicPath.isNotEmpty) {
+                final file = File(profilePicPath);
+                if (file.existsSync()) {
+                  leadingWidget = Image.file(
+                    file,
+                    width: 50,
+                    height: 50,
+                    fit: BoxFit.cover,
+                  );
+                } else {
+                  leadingWidget = Icon(Icons.person);
+                }
+              } else {
+                leadingWidget = Icon(Icons.person);
+              }
+
               return ListTile(
                 title: Text(name),
-                leading: profilePicPath.isNotEmpty
-                    ? Image.network(profilePicPath)
-                    : Icon(Icons.person),
+                subtitle: Text('Telefone: $phone\nE-mail: $email'),
+                leading: leadingWidget,
                 onTap: () {
+                  print('Item clicado: $name');
                   Navigator.push(
                     context,
                     MaterialPageRoute(
                       builder: (context) => RegisterScreen(contact: person),
                     ),
-                  );
+                  ).then((_) {
+                    _refreshPeople();
+                  });
                 },
               );
             },
@@ -51,11 +166,15 @@ class PeopleListScreen extends StatelessWidget {
         },
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          Navigator.push(
+        onPressed: () async {
+          print('Botão flutuante clicado');
+          final result = await Navigator.push(
             context,
             MaterialPageRoute(builder: (context) => RegisterScreen()),
           );
+          if (result == true) {
+            _refreshPeople();
+          }
         },
         child: Icon(Icons.add),
         tooltip: 'Registrar Contato',

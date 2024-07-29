@@ -1,9 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:image_picker/image_picker.dart';
-import 'package:image_cropper/image_cropper.dart';
-import 'dart:io';
+import 'dart:io'; // Import necessário para trabalhar com arquivos
+import 'package:image_picker/image_picker.dart'; // Para selecionar imagens
 import '../service/api_service.dart';
-import '../screen/people_list_screen.dart';
 
 class RegisterScreen extends StatefulWidget {
   final Map<String, dynamic>? contact;
@@ -16,42 +14,38 @@ class RegisterScreen extends StatefulWidget {
 
 class _RegisterScreenState extends State<RegisterScreen> {
   final _nameController = TextEditingController();
+  final _phoneController = TextEditingController();
+  final _emailController = TextEditingController();
   File? _imageFile;
+  final _picker = ImagePicker();
 
   @override
   void initState() {
     super.initState();
     if (widget.contact != null) {
-      _nameController.text = widget.contact!['name'];
-      _imageFile = widget.contact!['profilePicPath'] != null
-          ? File(widget.contact!['profilePicPath'])
-          : null;
+      _nameController.text = widget.contact?['name'] ?? '';
+      _phoneController.text = widget.contact?['phone'] ?? '';
+      _emailController.text = widget.contact?['email'] ?? '';
+      _loadImage(widget.contact?['profilePicPath']);
     }
   }
 
-  Future<void> _pickAndCropImage() async {
-    final picker = ImagePicker();
-    final pickedFile = await picker.getImage(source: ImageSource.gallery);
+  Future<void> _loadImage(String? path) async {
+    if (path != null && path.isNotEmpty) {
+      final file = File(path);
+      if (file.existsSync()) {
+        setState(() {
+          _imageFile = file;
+        });
+      }
+    }
+  }
 
+  Future<void> _pickImage() async {
+    final pickedFile = await _picker.pickImage(source: ImageSource.gallery);
     if (pickedFile != null) {
-      final croppedFile = await ImageCropper().cropImage(
-        sourcePath: pickedFile.path,
-        aspectRatioPresets: [
-          CropAspectRatioPreset.square,
-          CropAspectRatioPreset.ratio3x2,
-          CropAspectRatioPreset.ratio4x3,
-          CropAspectRatioPreset.ratio16x9
-        ],
-        androidUiSettings: const AndroidUiSettings(
-          toolbarTitle: 'Crop Image',
-          toolbarColor: Colors.deepOrange,
-          toolbarWidgetColor: Colors.white,
-          initAspectRatio: CropAspectRatioPreset.original,
-          lockAspectRatio: false),
-      );
-
       setState(() {
-        _imageFile = File(croppedFile!.path);
+        _imageFile = File(pickedFile.path);
       });
     }
   }
@@ -62,24 +56,23 @@ class _RegisterScreenState extends State<RegisterScreen> {
       if (widget.contact == null) {
         await apiService.createPerson(
           _nameController.text,
+          _phoneController.text,
+          _emailController.text,
           _imageFile?.path ?? '',
         );
       } else {
         await apiService.updatePerson(
-          widget.contact!['objectId'], 
+          widget.contact!['objectId'],
           _nameController.text,
+          _phoneController.text,
+          _emailController.text,
           _imageFile?.path ?? '',
         );
       }
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Contato ${widget.contact == null ? 'registrado' : 'atualizado'} com sucesso!')),       
+        SnackBar(content: Text('Contato ${widget.contact == null ? 'registrado' : 'atualizado'} com sucesso!')),
       );
-      
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (context) => PeopleListScreen()),
-      );
-
+      Navigator.pop(context, true); // Retornar verdadeiro indicando que houve uma atualização
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Erro: $e')),
@@ -90,30 +83,48 @@ class _RegisterScreenState extends State<RegisterScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text(widget.contact == null ? 'Register Person' : 'Edit Person')),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          children: [
-            TextField(
-              controller: _nameController,
-              decoration: const InputDecoration(labelText: 'Name'),
-            ),
-            const SizedBox(height: 16),
-            _imageFile == null
-                ? const Text('Nenhuma imagem selecionada.')
-                : Image.file(_imageFile!),
-            const SizedBox(height: 16),
-            ElevatedButton(
-              onPressed: _pickAndCropImage,
-              child: const Text('Selecionar Imagem'),
-            ),
-            const SizedBox(height: 16),
-            ElevatedButton(
-              onPressed: _saveOrUpdatePerson,
-              child: const Text('Salvar'),
-            ),
-          ],
+      appBar: AppBar(title: Text(widget.contact == null ? 'Registrar Contato' : 'Editar Contato')),
+      body: SingleChildScrollView(
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: <Widget>[
+              TextField(
+                controller: _nameController,
+                decoration: InputDecoration(labelText: 'Nome'),
+              ),
+              TextField(
+                controller: _phoneController,
+                decoration: InputDecoration(labelText: 'Telefone'),
+                keyboardType: TextInputType.phone,
+              ),
+              TextField(
+                controller: _emailController,
+                decoration: InputDecoration(labelText: 'E-mail'),
+                keyboardType: TextInputType.emailAddress,
+              ),
+              SizedBox(height: 20),
+              _imageFile != null
+                  ? Image.file(
+                      _imageFile!,
+                      width: 100, // Ajuste o tamanho conforme necessário
+                      height: 100,
+                      fit: BoxFit.cover,
+                    )
+                  : Icon(Icons.person, size: 100),
+              SizedBox(height: 20),
+              ElevatedButton(
+                onPressed: _pickImage,
+                child: Text('Selecionar Imagem'),
+              ),
+              SizedBox(height: 20),
+              ElevatedButton(
+                onPressed: _saveOrUpdatePerson,
+                child: Text('Salvar'),
+              ),
+            ],
+          ),
         ),
       ),
     );
