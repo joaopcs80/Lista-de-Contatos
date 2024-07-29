@@ -11,7 +11,7 @@ class PeopleListScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('People List')),
+      appBar: AppBar(title: Text('Lista de Contatos')),
       body: FutureBuilder<List<Map<String, dynamic>>>(
         future: _fetchPeople(),
         builder: (context, snapshot) {
@@ -22,7 +22,7 @@ class PeopleListScreen extends StatelessWidget {
             return Center(child: Text('Error: ${snapshot.error}'));
           }
           if (!snapshot.hasData || snapshot.data!.isEmpty) {
-            return Center(child: Text('No people found.'));
+            return Center(child: Text('Contato não encontrado.'));
           }
 
           final people = snapshot.data!;
@@ -58,7 +58,7 @@ class PeopleListScreen extends StatelessWidget {
           );
         },
         child: Icon(Icons.add),
-        tooltip: 'Register Person',
+        tooltip: 'Registrar Contato',
       ),
     );
   }

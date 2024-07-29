@@ -3,6 +3,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:image_cropper/image_cropper.dart';
 import 'dart:io';
 import '../service/api_service.dart';
+import '../screen/people_list_screen.dart';
 
 class RegisterScreen extends StatefulWidget {
   final Map<String, dynamic>? contact;
@@ -65,17 +66,23 @@ class _RegisterScreenState extends State<RegisterScreen> {
         );
       } else {
         await apiService.updatePerson(
-          widget.contact!['objectId'], // assuming you have an ID
+          widget.contact!['objectId'], 
           _nameController.text,
           _imageFile?.path ?? '',
         );
       }
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Person ${widget.contact == null ? 'registered' : 'updated'} successfully')),
+        SnackBar(content: Text('Contato ${widget.contact == null ? 'registrado' : 'atualizado'} com sucesso!')),       
       );
+      
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => PeopleListScreen()),
+      );
+
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error: $e')),
+        SnackBar(content: Text('Erro: $e')),
       );
     }
   }
@@ -94,17 +101,17 @@ class _RegisterScreenState extends State<RegisterScreen> {
             ),
             const SizedBox(height: 16),
             _imageFile == null
-                ? const Text('No image selected.')
+                ? const Text('Nenhuma imagem selecionada.')
                 : Image.file(_imageFile!),
             const SizedBox(height: 16),
             ElevatedButton(
               onPressed: _pickAndCropImage,
-              child: const Text('Pick and Crop Image'),
+              child: const Text('Selecionar Imagem'),
             ),
             const SizedBox(height: 16),
             ElevatedButton(
               onPressed: _saveOrUpdatePerson,
-              child: const Text('Save'),
+              child: const Text('Salvar'),
             ),
           ],
         ),
