@@ -10,12 +10,7 @@ class ApiService {
     },
   ));
 
-  Future<void> createPerson(
-    String name,
-    String phone,
-    String email,
-    String profilePicPath,
-  ) async {
+  Future<void> createPerson(String name, String phone, String email, String profilePicPath) async {
     try {
       final response = await _dio.post(
         'Person',
@@ -34,13 +29,7 @@ class ApiService {
     }
   }
 
-  Future<void> updatePerson(
-    String objectId,
-    String name,
-    String phone,
-    String email,
-    String profilePicPath,
-  ) async {
+  Future<void> updatePerson(String objectId, String name, String phone, String email, String profilePicPath) async {
     try {
       final response = await _dio.put(
         'Person/$objectId',
@@ -56,6 +45,17 @@ class ApiService {
       }
     } catch (e) {
       throw Exception('Failed to update person: $e');
+    }
+  }
+
+  Future<void> deletePerson(String objectId) async {
+    try {
+      final response = await _dio.delete('Person/$objectId');
+      if (response.statusCode != 200) {
+        throw Exception('Failed to delete person: ${response.statusMessage}');
+      }
+    } catch (e) {
+      throw Exception('Failed to delete person: $e');
     }
   }
 

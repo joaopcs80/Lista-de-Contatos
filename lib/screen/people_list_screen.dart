@@ -91,6 +91,48 @@ class _PeopleListScreenState extends State<PeopleListScreen> {
     );
   }
 
+  Future<void> _deletePerson(String objectId) async {
+    final apiService = ApiService();
+    try {
+      await apiService.deletePerson(objectId);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Contato deletado com sucesso!')),
+      );
+      _refreshPeople();
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Erro ao deletar contato: $e')),
+      );
+    }
+  }
+
+  void _confirmDelete(BuildContext context, String objectId) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Confirmar Exclusão'),
+          content: Text('Tem certeza que deseja deletar este contato?'),
+          actions: [
+            TextButton(
+              child: Text('Cancelar'),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+            TextButton(
+              child: Text('Deletar'),
+              onPressed: () {
+                Navigator.of(context).pop();
+                _deletePerson(objectId);
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -149,6 +191,10 @@ class _PeopleListScreenState extends State<PeopleListScreen> {
                 title: Text(name),
                 subtitle: Text('Telefone: $phone\nE-mail: $email'),
                 leading: leadingWidget,
+                trailing: IconButton(
+                  icon: Icon(Icons.delete),
+                  onPressed: () => _confirmDelete(context, person['objectId']),
+                ),
                 onTap: () {
                   print('Item clicado: $name');
                   Navigator.push(
