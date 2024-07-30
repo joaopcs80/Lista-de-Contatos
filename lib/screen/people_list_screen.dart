@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
-import 'dart:io'; 
-import 'package:listadecontatos/screen/register_screen.dart';
+import 'dart:io';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:auto_size_text/auto_size_text.dart';
+import 'register_screen.dart';
 import '../service/api_service.dart';
 
 class PeopleListScreen extends StatefulWidget {
@@ -32,11 +34,9 @@ class _PeopleListScreenState extends State<PeopleListScreen> {
         }
         return 0;
       });
-      print('Dados recebidos: $people');
       return people;
     } catch (e) {
-      print('Erro ao buscar pessoas: $e');
-      throw e;
+      throw Exception('Failed to fetch people: $e');
     }
   }
 
@@ -53,7 +53,7 @@ class _PeopleListScreenState extends State<PeopleListScreen> {
         return Wrap(
           children: <Widget>[
             ListTile(
-              leading: Icon(Icons.sort_by_alpha),
+              leading: Icon(FontAwesomeIcons.sortAlphaDown),
               title: Text('Ordenar por Nome'),
               onTap: () {
                 setState(() {
@@ -64,7 +64,7 @@ class _PeopleListScreenState extends State<PeopleListScreen> {
               },
             ),
             ListTile(
-              leading: Icon(Icons.phone),
+              leading: Icon(FontAwesomeIcons.phone),
               title: Text('Ordenar por Telefone'),
               onTap: () {
                 setState(() {
@@ -75,7 +75,7 @@ class _PeopleListScreenState extends State<PeopleListScreen> {
               },
             ),
             ListTile(
-              leading: Icon(Icons.email),
+              leading: Icon(FontAwesomeIcons.envelope),
               title: Text('Ordenar por E-mail'),
               onTap: () {
                 setState(() {
@@ -137,10 +137,14 @@ class _PeopleListScreenState extends State<PeopleListScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Lista de Contatos'),
+        title: AutoSizeText(
+          'Lista de Contatos',
+          style: TextStyle(fontSize: 20),
+          maxLines: 1,
+        ),
         actions: [
           IconButton(
-            icon: Icon(Icons.sort),
+            icon: Icon(FontAwesomeIcons.sort),
             onPressed: _showSortOptions,
           ),
         ],
@@ -152,11 +156,9 @@ class _PeopleListScreenState extends State<PeopleListScreen> {
             return Center(child: CircularProgressIndicator());
           }
           if (snapshot.hasError) {
-            print('Erro no FutureBuilder: ${snapshot.error}');
             return Center(child: Text('Erro: ${snapshot.error}'));
           }
           if (!snapshot.hasData || snapshot.data!.isEmpty) {
-            print('Nenhum contato encontrado.');
             return Center(child: Text('Nenhum contato encontrado.'));
           }
 
@@ -181,22 +183,29 @@ class _PeopleListScreenState extends State<PeopleListScreen> {
                     fit: BoxFit.cover,
                   );
                 } else {
-                  leadingWidget = Icon(Icons.person);
+                  leadingWidget = Icon(FontAwesomeIcons.user);
                 }
               } else {
-                leadingWidget = Icon(Icons.person);
+                leadingWidget = Icon(FontAwesomeIcons.user);
               }
 
               return ListTile(
-                title: Text(name),
-                subtitle: Text('Telefone: $phone\nE-mail: $email'),
+                title: AutoSizeText(
+                  name,
+                  style: TextStyle(fontSize: 18),
+                  maxLines: 1,
+                ),
+                subtitle: AutoSizeText(
+                  'Telefone: $phone\nE-mail: $email',
+                  style: TextStyle(fontSize: 14),
+                  maxLines: 2,
+                ),
                 leading: leadingWidget,
                 trailing: IconButton(
-                  icon: Icon(Icons.delete),
+                  icon: Icon(FontAwesomeIcons.trash),
                   onPressed: () => _confirmDelete(context, person['objectId']),
                 ),
                 onTap: () {
-                  print('Item clicado: $name');
                   Navigator.push(
                     context,
                     MaterialPageRoute(
@@ -213,7 +222,6 @@ class _PeopleListScreenState extends State<PeopleListScreen> {
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () async {
-          print('Botão flutuante clicado');
           final result = await Navigator.push(
             context,
             MaterialPageRoute(builder: (context) => RegisterScreen()),

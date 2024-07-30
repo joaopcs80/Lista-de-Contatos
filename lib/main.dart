@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:listadecontatos/screen/people_list_screen.dart';
-import 'package:listadecontatos/screen/register_screen.dart';
+import 'package:listadecontatos/screen/splash_screen.dart';
 
 void main() {
   runApp(MyApp());
@@ -14,7 +13,7 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         primarySwatch: Colors.blue,
       ),
-      home: PeopleListScreen(), 
+      home: SplashScreen(),
     );
   }
 }
