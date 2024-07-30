@@ -1,31 +1,91 @@
 import 'package:flutter/material.dart';
-import 'package:animated_splash_screen/animated_splash_screen.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-import 'people_list_screen.dart';
+import 'package:listadecontatos/screen/people_list_screen.dart';
 
-class SplashScreen extends StatelessWidget {
+void main() {
+  runApp(MyApp());
+}
+
+class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return AnimatedSplashScreen(
-      duration: 3000,
-      splash: const Column(
-        mainAxisAlignment: MainAxisAlignment.center, // Alinha o conteúdo verticalmente no centro
-        children: [
-          Icon(
-            FontAwesomeIcons.addressBook,
-            size: 100,
-            color: Colors.white,
-          ),
-          SizedBox(height: 20),
-          Text(
-            'Cadastro de Contatos',
-            style: TextStyle(fontSize: 24, color: Colors.white),
-          ),
-        ],
+    return MaterialApp(
+      title: 'Flutter Demo',
+      theme: ThemeData(
+        primarySwatch: Colors.blue,
       ),
-      nextScreen: PeopleListScreen(),
-      splashTransition: SplashTransition.fadeTransition,
+      home: SplashScreen(),
+    );
+  }
+}
+
+class SplashScreen extends StatefulWidget {
+  @override
+  _SplashScreenState createState() => _SplashScreenState();
+}
+
+class _SplashScreenState extends State<SplashScreen>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+  late Animation<double> _animation;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      duration: const Duration(seconds: 3),
+      vsync: this,
+    )..forward();
+    _animation = CurvedAnimation(
+      parent: _controller,
+      curve: Curves.easeInOut,
+    );
+
+    _controller.addStatusListener((status) {
+      if (status == AnimationStatus.completed) {
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(
+            builder: (context) => PeopleListScreen(),
+          ),
+        );
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
       backgroundColor: Colors.blue,
+      body: Center(
+        child: ScaleTransition(
+          scale: _animation,
+          child: const Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(
+                FontAwesomeIcons.addressBook,
+                color: Colors.white,
+                size: 100,
+              ),
+              SizedBox(height: 20),
+              Text(
+                'Cadastro de Contatos',
+                style: TextStyle(
+                  fontSize: 24,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 }
