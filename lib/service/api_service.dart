@@ -2,10 +2,10 @@ import 'package:dio/dio.dart';
 
 class ApiService {
   final Dio _dio = Dio(BaseOptions(
-    baseUrl: 'https://parseapi.back4app.com/classes/ListadeContatos',
+    baseUrl: 'https://parseapi.back4app.com/classes/SUA_CLASSE',
     headers: {
-      'X-Parse-Application-Id': 'EEc5M90U1c1ll4j4ghCvczxdkMeu8GTSeb4wJulf',
-      'X-Parse-REST-API-Key': 'H4fVRNm250sKQOUD4479fpJKkI7RzWR1XZkzvFDr',
+      'X-Parse-Application-Id': 'SUA_APLICATION_ID',
+      'X-Parse-REST-API-Key': 'SUA_API_KEY',
       'Content-Type': 'application/json',
     },
   ));
